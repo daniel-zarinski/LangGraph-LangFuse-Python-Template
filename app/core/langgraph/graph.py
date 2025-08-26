@@ -1,4 +1,7 @@
-"""This file contains the LangGraph Agent/workflow and interactions with the LLM."""
+"""DEPRECATED: This file contains the LangGraph Agent/workflow and interactions with the LLM.
+
+Use the new modular structure instead. See example_usage.py for an example.
+"""
 
 from typing import (
     Any,
@@ -14,6 +17,7 @@ from langchain_core.messages import (
     ToolMessage,
     convert_to_openai_messages,
 )
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
 from langfuse.langchain import CallbackHandler
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
@@ -64,6 +68,13 @@ class LangGraphAgent:
         self.tools_by_name = {tool.name: tool for tool in tools}
         self._connection_pool: Optional[AsyncConnectionPool] = None
         self._graph: Optional[CompiledStateGraph] = None
+        self.google_llm = ChatGoogleGenerativeAI(
+            model="gemini-2.5-flash",
+            google_api_key=settings.GOOGLE_API_KEY,
+            max_output_tokens=settings.MAX_TOKENS,
+            temperature=settings.DEFAULT_LLM_TEMPERATURE,
+            **self._get_model_kwargs(),
+        ).bind_tools(tools)
 
         logger.info("llm_initialized", model=settings.LLM_MODEL, environment=settings.ENVIRONMENT.value)
 
