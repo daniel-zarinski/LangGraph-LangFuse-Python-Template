@@ -1042,6 +1042,7 @@ dev = [
     { name = "flake8" },
     { name = "isort" },
     { name = "pylint" },
+    { name = "pytest" },
     { name = "ruff" },
 ]
 
@@ -1080,6 +1081,7 @@ requires-dist = [
     { name = "pydantic", extras = ["email"], specifier = ">=2.11.1" },
     { name = "pydantic-settings", specifier = ">=2.8.1" },
     { name = "pylint", marker = "extra == 'dev'" },
+    { name = "pytest", marker = "extra == 'dev'" },
     { name = "python-dotenv", specifier = ">=1.1.0" },
     { name = "python-jose", extras = ["cryptography"], specifier = ">=3.4.0" },
     { name = "python-multipart", specifier = ">=0.0.20" },
