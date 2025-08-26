@@ -42,6 +42,9 @@ eval-no-report:
 lint:
 	ruff check .
 
+pylint:
+	uv run pylint app
+
 format:
 	ruff format .
 
