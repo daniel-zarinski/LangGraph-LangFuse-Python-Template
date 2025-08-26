@@ -16,7 +16,7 @@ from fastapi.responses import StreamingResponse
 
 from app.api.v1.auth import get_current_session
 from app.core.config import settings
-from app.core.langgraph.agents.chatbot_agent import ChatbotAgent
+from app.core.langgraph.graphs.chatbot_graph import ChatbotGraph
 from app.core.limiter import limiter
 from app.core.logging import logger
 from app.core.metrics import llm_stream_duration_seconds
@@ -28,7 +28,7 @@ from app.schemas.chat import (
 )
 
 router = APIRouter()
-agent = ChatbotAgent()
+graph = ChatbotGraph()
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -58,7 +58,7 @@ async def chat(
             message_count=len(chat_request.messages),
         )
 
-        result = await agent.get_response(
+        result = await graph.get_response(
             chat_request.messages, session.id, user_id=session.user_id
         )
 
@@ -108,8 +108,8 @@ async def chat_stream(
             """
             try:
                 full_response = ""
-                with llm_stream_duration_seconds.labels(model=agent.model_name).time():
-                    async for chunk in agent.get_stream_response(
+                with llm_stream_duration_seconds.labels(model=graph.model_name).time():
+                    async for chunk in graph.get_stream_response(
                         chat_request.messages, session.id, user_id=session.user_id
                      ):
                         full_response += chunk
@@ -161,7 +161,7 @@ async def get_session_messages(
         HTTPException: If there's an error retrieving the messages.
     """
     try:
-        messages = await agent.get_chat_history(session.id)
+        messages = await graph.get_chat_history(session.id)
         return ChatResponse(messages=messages)
     except Exception as e:
         logger.error("get_messages_failed", session_id=session.id, error=str(e), exc_info=True)
@@ -184,7 +184,7 @@ async def clear_chat_history(
         dict: A message indicating the chat history was cleared.
     """
     try:
-        await agent.clear_chat_history(session.id)
+        await graph.clear_chat_history(session.id)
         return {"message": "Chat history cleared successfully"}
     except Exception as e:
         logger.error("clear_chat_history_failed", session_id=session.id, error=str(e), exc_info=True)

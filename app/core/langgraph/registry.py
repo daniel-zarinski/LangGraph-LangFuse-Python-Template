@@ -3,49 +3,49 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Optional, Type
 
-from app.core.langgraph.agents.base_agent import BaseAgent
-from app.core.langgraph.agents.chatbot_agent import ChatbotAgent
+from app.core.langgraph.graphs.base_graph import BaseGraph
+from app.core.langgraph.graphs.chatbot_graph import ChatbotGraph
 from app.core.logging import logger
 
 
 class GraphRegistry:
     """Registry for managing different graph types by name."""
     
-    _graphs: Dict[str, Type[BaseAgent]] = {}
-    _instances: Dict[str, BaseAgent] = {}
+    _graphs: Dict[str, Type[BaseGraph]] = {}
+    _instances: Dict[str, BaseGraph] = {}
     
     @classmethod
-    def register(cls, name: str, agent_class: Type[BaseAgent]) -> None:
+    def register(cls, name: str, graph_class: Type[BaseGraph]) -> None:
         """Register a graph type with a unique name.
         
         Args:
             name: Unique identifier for the graph type
-            agent_class: The agent class that implements this graph
+            graph_class: The graph class that implements this graph
         """
         if name in cls._graphs:
             logger.warning(f"Graph '{name}' is already registered, overwriting")
         
-        cls._graphs[name] = agent_class
+        cls._graphs[name] = graph_class
         logger.info(f"Graph '{name}' registered successfully")
     
     @classmethod
-    def get_agent(cls, name: str) -> Optional[BaseAgent]:
-        """Get an agent instance by graph name.
+    def get_graph(cls, name: str) -> Optional[BaseGraph]:
+        """Get a graph instance by graph name.
         
         Args:
             name: The name of the graph to get
             
         Returns:
-            BaseAgent instance or None if not found
+            BaseGraph instance or None if not found
         """
         if name not in cls._graphs:
             logger.error(f"Graph '{name}' not found in registry")
             return None
         
-        # Use singleton pattern for agents to reuse compiled graphs
+        # Use singleton pattern for graphs to reuse compiled graphs
         if name not in cls._instances:
-            agent_class = cls._graphs[name]
-            cls._instances[name] = agent_class()
+            graph_class = cls._graphs[name]
+            cls._instances[name] = graph_class()
             logger.info(f"Created new instance of graph '{name}'")
         
         return cls._instances[name]
@@ -73,6 +73,6 @@ class GraphRegistry:
 
 
 # Register default graphs
-GraphRegistry.register("chatbot", ChatbotAgent)
+GraphRegistry.register("chatbot", ChatbotGraph)
 
 logger.info("Graph registry initialized with default graphs")

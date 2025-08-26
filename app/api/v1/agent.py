@@ -18,7 +18,7 @@ from app.core.limiter import limiter
 from app.core.logging import logger
 from app.models.session import Session
 from app.schemas.chat import (
-    AgentRequest,
+    ChatRequest,
     ChatResponse,
 )
 
@@ -29,7 +29,7 @@ router = APIRouter()
 @limiter.limit(settings.RATE_LIMIT_ENDPOINTS["chat"][0])
 async def execute_graph(
     request: Request,
-    agent_request: AgentRequest,
+    agent_request: ChatRequest,
     session: Session = Depends(get_current_session),
 ):
     """Execute a specific LangGraph workflow by name.
@@ -53,9 +53,9 @@ async def execute_graph(
             message_count=len(agent_request.messages),
         )
 
-        # Get the agent for the specified graph
-        agent = GraphRegistry.get_agent(agent_request.graph_name)
-        if agent is None:
+        # Get the graph for the specified graph
+        graph = GraphRegistry.get_graph(agent_request.graph_name)
+        if graph is None:
             available_graphs = GraphRegistry.list_graphs()
             raise HTTPException(
                 status_code=404,
@@ -63,7 +63,7 @@ async def execute_graph(
             )
 
         # Execute the graph
-        result = await agent.get_response(
+        result = await graph.get_response(
             agent_request.messages, session.id, user_id=session.user_id
         )
 
@@ -92,7 +92,6 @@ async def execute_graph(
 @limiter.limit(settings.RATE_LIMIT_ENDPOINTS["messages"][0])
 async def list_available_graphs(
     request: Request,
-    session: Session = Depends(get_current_session),
 ):
     """List all available graph types.
 
@@ -107,7 +106,6 @@ async def list_available_graphs(
         available_graphs = GraphRegistry.list_graphs()
         logger.info(
             "graphs_list_requested",
-            session_id=session.id,
             available_graphs=available_graphs,
         )
         
@@ -117,7 +115,7 @@ async def list_available_graphs(
             "message": f"Found {len(available_graphs)} available graph(s)"
         }
     except Exception as e:
-        logger.error("list_graphs_failed", session_id=session.id, error=str(e), exc_info=True)
+        logger.error("list_graphs_failed", error=str(e), exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -145,16 +143,16 @@ async def get_session_messages(
         # Validate and normalize graph name
         graph_name = graph_name.lower()
         
-        # Get the agent for the specified graph
-        agent = GraphRegistry.get_agent(graph_name)
-        if agent is None:
+        # Get the graph for the specified graph
+        graph = GraphRegistry.get_graph(graph_name)
+        if graph is None:
             available_graphs = GraphRegistry.list_graphs()
             raise HTTPException(
                 status_code=404,
                 detail=f"Graph '{graph_name}' not found. Available graphs: {', '.join(available_graphs)}"
             )
 
-        messages = await agent.get_chat_history(session.id)
+        messages = await graph.get_chat_history(session.id)
         logger.info(
             "messages_retrieved",
             session_id=session.id,
@@ -168,60 +166,6 @@ async def get_session_messages(
     except Exception as e:
         logger.error(
             "get_messages_failed", 
-            session_id=session.id, 
-            graph_name=graph_name,
-            error=str(e), 
-            exc_info=True
-        )
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.delete("/messages/{graph_name}")
-@limiter.limit(settings.RATE_LIMIT_ENDPOINTS["messages"][0])
-async def clear_chat_history(
-    request: Request,
-    graph_name: str,
-    session: Session = Depends(get_current_session),
-):
-    """Clear all messages for a session from a specific graph.
-
-    Args:
-        request: The FastAPI request object for rate limiting.
-        graph_name: The name of the graph to clear messages from.
-        session: The current session from the auth token.
-
-    Returns:
-        dict: A message indicating the chat history was cleared.
-
-    Raises:
-        HTTPException: If there's an error clearing the history or graph not found.
-    """
-    try:
-        # Validate and normalize graph name
-        graph_name = graph_name.lower()
-        
-        # Get the agent for the specified graph
-        agent = GraphRegistry.get_agent(graph_name)
-        if agent is None:
-            available_graphs = GraphRegistry.list_graphs()
-            raise HTTPException(
-                status_code=404,
-                detail=f"Graph '{graph_name}' not found. Available graphs: {', '.join(available_graphs)}"
-            )
-
-        await agent.clear_chat_history(session.id)
-        logger.info(
-            "chat_history_cleared",
-            session_id=session.id,
-            graph_name=graph_name,
-        )
-        return {"message": f"Chat history cleared successfully for graph '{graph_name}'"}
-    except HTTPException:
-        # Re-raise HTTP exceptions as-is
-        raise
-    except Exception as e:
-        logger.error(
-            "clear_chat_history_failed", 
             session_id=session.id, 
             graph_name=graph_name,
             error=str(e), 

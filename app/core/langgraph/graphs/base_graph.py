@@ -1,4 +1,4 @@
-"""Base agent class providing common interface and functionality."""
+"""Base graph class providing common interface and functionality."""
 
 from abc import ABC, abstractmethod
 from typing import AsyncGenerator, Optional
@@ -15,19 +15,19 @@ from app.schemas import Message
 from app.utils import dump_messages
 
 
-class BaseAgent(ABC):
-    """Abstract base class providing the common interface that all agents must implement.
+class BaseGraph(ABC):
+    """Abstract base class providing the common interface that all graphs must implement.
     
-    Handles graph lifecycle and standard agent operations.
+    Handles graph lifecycle and standard graph operations.
     """
 
     def __init__(self):
-        """Initialize the base agent."""
+        """Initialize the base graph."""
         self._graph: Optional[CompiledStateGraph] = None
 
     @abstractmethod
     async def _create_graph(self) -> Optional[CompiledStateGraph]:
-        """Create the graph for this agent.
+        """Create the graph for this graph instance.
 
         Returns:
             Optional[CompiledStateGraph]: The compiled graph or None if creation fails.
@@ -91,15 +91,15 @@ class BaseAgent(ABC):
         session_id: str,
         user_id: Optional[str] = None,
     ) -> list[dict]:
-        """Get a response from the agent.
+        """Get a response from the graph.
 
         Args:
-            messages: The messages to send to the agent.
+            messages: The messages to send to the graph.
             session_id: The session ID for tracking.
             user_id: Optional user ID for tracking.
 
         Returns:
-            list[dict]: The response from the agent.
+            list[dict]: The response from the graph.
         """
         graph = await self._ensure_graph()
         if graph is None:
@@ -122,15 +122,15 @@ class BaseAgent(ABC):
         session_id: str, 
         user_id: Optional[str] = None
     ) -> AsyncGenerator[str, None]:
-        """Get a stream response from the agent.
+        """Get a stream response from the graph.
 
         Args:
-            messages: The messages to send to the agent.
+            messages: The messages to send to the graph.
             session_id: The session ID for the conversation.
             user_id: Optional user ID for the conversation.
 
         Yields:
-            str: Tokens of the agent response.
+            str: Tokens of the graph response.
         """
         graph = await self._ensure_graph()
         if graph is None:

@@ -1,17 +1,17 @@
-"""Chatbot agent implementation for orchestrating chatbot workflows."""
+"""Chatbot graph implementation for orchestrating chatbot workflows."""
 
 from typing import Optional
 
 from langgraph.graph.state import CompiledStateGraph
 
 from app.core.config import settings
-from app.core.langgraph.agents.base_agent import BaseAgent
 from app.core.langgraph.builders.chatbot_graph_builder import ChatbotGraphBuilder
+from app.core.langgraph.graphs.base_graph import BaseGraph
 from app.core.langgraph.llm import GoogleModel, LLMManager, OpenAIModel
 from app.core.logging import logger
 
 
-class ChatbotAgent(BaseAgent):
+class ChatbotGraph(BaseGraph):
     """Implements chatbot-specific logic and integrates all chatbot components.
     
     The main orchestrator for chatbot functionality.
@@ -21,7 +21,7 @@ class ChatbotAgent(BaseAgent):
                  llm_manager: Optional[LLMManager] = None, 
                  openai_model: OpenAIModel = OpenAIModel.GPT_4O_MINI,
                  google_model: GoogleModel = GoogleModel.GEMINI_FLASH):
-        """Initialize the chatbot agent.
+        """Initialize the chatbot graph.
 
         Args:
             llm_manager: Optional LLM manager. If not provided, creates a new one with the specified models.
@@ -82,6 +82,6 @@ class ChatbotAgent(BaseAgent):
         return self.llm_manager.get_openai_llm().model_name
 
     async def cleanup(self) -> None:
-        """Clean up agent resources."""
+        """Clean up graph resources."""
         await self.graph_builder.cleanup()
-        logger.info("chatbot_agent_cleanup_completed")
+        logger.info("chatbot_graph_cleanup_completed")
