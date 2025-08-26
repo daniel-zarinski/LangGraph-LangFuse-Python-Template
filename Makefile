@@ -26,6 +26,35 @@ dev:
 	@echo "Starting server in development environment"
 	@bash -c "source scripts/set_env.sh development && uv run uvicorn app.main:app --reload --port 8000"
 
+# Test commands
+test:
+	@echo "Running all tests"
+	@bash -c "source scripts/set_env.sh ${ENV:-test} && python run_tests.py"
+
+test-unit:
+	@echo "Running unit tests"
+	@bash -c "source scripts/set_env.sh ${ENV:-test} && python run_tests.py --unit"
+
+test-integration:
+	@echo "Running integration tests"
+	@bash -c "source scripts/set_env.sh ${ENV:-test} && python run_tests.py --integration"
+
+test-coverage:
+	@echo "Running tests with coverage"
+	@bash -c "source scripts/set_env.sh ${ENV:-test} && python run_tests.py --coverage"
+
+test-fast:
+	@echo "Running fast tests (skipping slow tests)"
+	@bash -c "source scripts/set_env.sh ${ENV:-test} && python run_tests.py --fast"
+
+test-file:
+	@if [ -z "$(FILE)" ]; then \
+		echo "FILE is not set. Usage: make test-file FILE=tests/unit/test_sanitization.py"; \
+		exit 1; \
+	fi
+	@echo "Running tests from $(FILE)"
+	@bash -c "source scripts/set_env.sh ${ENV:-test} && python run_tests.py --file $(FILE)"
+
 # Evaluation commands
 eval:
 	@echo "Running evaluation with interactive mode"
@@ -143,10 +172,15 @@ help:
 	@echo "  prod: Run server in production environment"
 	@echo "  staging: Run server in staging environment"
 	@echo "  dev: Run server in development environment"
+	@echo "  test: Run all tests"
+	@echo "  test-unit: Run unit tests only"
+	@echo "  test-integration: Run integration tests only"
+	@echo "  test-coverage: Run tests with coverage reporting"
+	@echo "  test-fast: Run fast tests (skip slow tests)"
+	@echo "  test-file FILE=<path>: Run tests from specific file"
 	@echo "  eval: Run evaluation with interactive mode"
 	@echo "  eval-quick: Run evaluation with default settings"
 	@echo "  eval-no-report: Run evaluation without generating report"
-	@echo "  test: Run tests"
 	@echo "  clean: Clean up"
 	@echo "  docker-build: Build default Docker image"
 	@echo "  docker-build-env ENV=<environment>: Build Docker image for specific environment"

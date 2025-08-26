@@ -20,7 +20,50 @@ tests/
 
 ## Running Tests
 
-### Run All Tests
+### Using Makefile Commands (Recommended)
+
+The project includes convenient Makefile commands that handle environment setup and use the `run_tests.py` script:
+
+```bash
+# Run all tests
+make test
+
+# Run only unit tests
+make test-unit
+
+# Run only integration tests
+make test-integration
+
+# Run tests with coverage reporting
+make test-coverage
+
+# Run fast tests (skip slow tests)
+make test-fast
+
+# Run tests from a specific file
+make test-file FILE=tests/unit/test_sanitization.py
+
+# Run with custom environment
+ENV=development make test
+```
+
+### Using the Test Runner Script Directly
+
+```bash
+# Run all tests
+python run_tests.py
+
+# Run with various options
+python run_tests.py --unit                    # Unit tests only
+python run_tests.py --integration             # Integration tests only
+python run_tests.py --coverage                # With coverage
+python run_tests.py --verbose                 # Verbose output
+python run_tests.py --fast                    # Skip slow tests
+python run_tests.py --file tests/unit/test_sanitization.py  # Specific file
+```
+
+### Using Pytest Directly
+
 ```bash
 # Using pytest directly
 pytest
@@ -152,10 +195,13 @@ Use markers to categorize and selectively run tests:
 To run tests with coverage reporting:
 
 ```bash
-# Install coverage if not already installed
-uv add --group dev pytest-cov
+# Using Makefile (recommended)
+make test-coverage
 
-# Run tests with coverage
+# Using the test runner script directly
+python run_tests.py --coverage
+
+# Using pytest directly
 pytest --cov=app --cov-report=html
 
 # View coverage report
